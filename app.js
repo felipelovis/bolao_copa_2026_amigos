@@ -326,45 +326,78 @@ async function handleSubmit() {
         }
     });
     
-    if (Object.keys(palpitesAtuais).length === 0) {
-        alert('⚠️ Preencha pelo menos um palpite!');
+    // NOVO: Filtrar apenas jogos de fases abertas
+    const palpitesFasesAbertas = {};
+    for (const [idJogo, palpite] of Object.entries(palpitesAtuais)) {
+        const jogo = jogosData.find(j => j.ID_Jogo == idJogo);
+        if (jogo && faseEstaAberta(jogo.Fase)) {
+            palpitesFasesAbertas[idJogo] = palpite;
+        }
+    }
+    
+    if (Object.keys(palpitesFasesAbertas).length === 0) {
+        alert('⚠️ Não há palpites em fases abertas para salvar!');
         return;
     }
     
-    submitBtn.disabled = true;
-    submitBtn.textContent = '⏳ Salvando...';
+    // Mostrar barra de progresso
+    submitContainer.style.display = 'none';
+    progressContainer.style.display = 'block';
+    
+    const progressText = document.getElementById('progressText');
+    const progressDetails = document.getElementById('progressDetails');
+    const progressFill = document.getElementById('progressFill');
+    const progressPercentage = document.getElementById('progressPercentage');
+    
+    progressText.textContent = '⏳ Salvando palpites...';
+    progressDetails.textContent = `Salvando ${Object.keys(palpitesFasesAbertas).length} palpites de fases abertas`;
+    progressFill.style.width = '30%';
+    progressPercentage.textContent = '30%';
     
     try {
-        await salvarPalpites();
-        
-        successMessage.innerHTML = `✅ ${Object.keys(palpitesAtuais).length} palpites salvos com sucesso! Boa sorte! 🍀`;
-        successMessage.style.display = 'block';
-        
-        // Confete
+        // Simular progresso enquanto salva
         setTimeout(() => {
-            successMessage.style.display = 'none';
-        }, 5000);
+            progressFill.style.width = '60%';
+            progressPercentage.textContent = '60%';
+        }, 500);
         
-        submitBtn.textContent = '🚀 ENVIAR PALPITES';
-        submitBtn.disabled = false;
+        await salvarPalpites(palpitesFasesAbertas);
+        
+        progressFill.style.width = '100%';
+        progressPercentage.textContent = '100%';
+        progressText.textContent = '✅ Palpites salvos!';
+        progressDetails.textContent = `${Object.keys(palpitesFasesAbertas).length} palpites salvos com sucesso!`;
+        
+        // Esconder barra após 3 segundos
+        setTimeout(() => {
+            progressContainer.style.display = 'none';
+            submitContainer.style.display = 'block';
+            
+            successMessage.innerHTML = `✅ ${Object.keys(palpitesFasesAbertas).length} palpites salvos com sucesso! Boa sorte! 🍀`;
+            successMessage.style.display = 'block';
+            
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 5000);
+        }, 3000);
+        
+        // Limpar cache
+        st.cache_data.clear();
         
     } catch (error) {
+        progressContainer.style.display = 'none';
+        submitContainer.style.display = 'block';
         alert('❌ Erro ao salvar: ' + error.message);
-        submitBtn.textContent = '🚀 ENVIAR PALPITES';
-        submitBtn.disabled = false;
     }
 }
 
 // Salvar palpites no Google Sheets
-async function salvarPalpites() {
-    // Nota: Salvar no Google Sheets via API requer autenticação OAuth
-    // Para simplificar, vou usar Google Apps Script como intermediário
-    
-    const url = 'https://script.google.com/macros/s/AKfycbzxjXqoiryYdJ-XVrZwXGK-MBdqGUuSCPFdyliypFjNk1XeuDU-379O9oYzDA2wDowS/exec';
+async function salvarPalpites(palpites) {
+    const url = 'https://script.google.com/macros/s/AKfycbxKMVc53dhNJCJkzyl1B5xjPG0p-iucVlRkoTYXZYBYsSLJEfQ2zl8ZksCjcY435rUB/exec';  // NÃO ESQUEÇA DE COLOCAR A URL!
     
     const dados = {
         participante: usuarioLogado,
-        palpites: palpitesAtuais
+        palpites: palpites  // Agora só envia fases abertas
     };
     
     const response = await fetch(url, {
@@ -376,6 +409,5 @@ async function salvarPalpites() {
         body: JSON.stringify(dados)
     });
     
-    // Simulação de sucesso (já que no-cors não retorna resposta)
     return true;
 }
