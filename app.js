@@ -3,6 +3,10 @@ let usuarioLogado = null;
 let jogosData = [];
 let palpitesUsuario = {};
 let palpitesAtuais = {};
+let userToken = null;
+
+// URL DO BACKEND (CONFIGURE AQUI!)
+const BACKEND_URL = 'https://seu-backend.vercel.app'; // Mude depois do deploy!
 
 // Elementos DOM
 const loginScreen = document.getElementById('loginScreen');
@@ -17,6 +21,7 @@ const submitContainer = document.getElementById('submitContainer');
 const submitBtn = document.getElementById('submitBtn');
 const successMessage = document.getElementById('successMessage');
 const prazosInfo = document.getElementById('prazosInfo');
+const progressContainer = document.getElementById('progressContainer');
 
 // Inicializar
 document.addEventListener('DOMContentLoaded', () => {
@@ -32,9 +37,9 @@ function mostrarPrazos() {
     let html = '';
     for (const [fase, dataLimite] of Object.entries(DATAS_LIMITE)) {
         const tempoRestante = calcularTempoRestante(dataLimite);
-        const classe = tempoRestante.indisponivel ? 'prazo-indisponivel' : 'prazo-aberto';
-        const icone = tempoRestante.indisponivel ? '🔒' : '🟢';
-        const texto = tempoRestante.indisponivel ? 'indisponivel' : tempoRestante.texto;
+        const classe = tempoRestante.encerrado ? 'prazo-encerrado' : 'prazo-aberto';
+        const icone = tempoRestante.encerrado ? '🔒' : '🟢';
+        const texto = tempoRestante.encerrado ? 'Encerrado' : tempoRestante.texto;
         
         html += `<div class="prazo-item ${classe}">${icone} ${fase}: ${texto}</div>`;
     }
@@ -47,7 +52,7 @@ function calcularTempoRestante(dataLimite) {
     const diferenca = dataLimite - agora;
     
     if (diferenca <= 0) {
-        return { indisponivel: true, texto: 'indisponivel' };
+        return { encerrado: true, texto: 'Encerrado' };
     }
     
     const dias = Math.floor(diferenca / (1000 * 60 * 60 * 24));
@@ -55,44 +60,63 @@ function calcularTempoRestante(dataLimite) {
     const minutos = Math.floor((diferenca % (1000 * 60 * 60)) / (1000 * 60));
     
     if (dias > 0) {
-        return { indisponivel: false, texto: `${dias}d ${horas}h ${minutos}min` };
+        return { encerrado: false, texto: `${dias}d ${horas}h ${minutos}min` };
     } else if (horas > 0) {
-        return { indisponivel: false, texto: `${horas}h ${minutos}min` };
+        return { encerrado: false, texto: `${horas}h ${minutos}min` };
     } else {
-        return { indisponivel: false, texto: `${minutos}min` };
+        return { encerrado: false, texto: `${minutos}min` };
     }
 }
 
 // Verificar se fase está aberta
 function faseEstaAberta(fase) {
     if (!DATAS_LIMITE[fase]) return true;
-    return !calcularTempoRestante(DATAS_LIMITE[fase]).indisponivel;
+    return !calcularTempoRestante(DATAS_LIMITE[fase]).encerrado;
 }
 
-// Login
-function handleLogin(e) {
+// Login com backend
+async function handleLogin(e) {
     e.preventDefault();
     
     const nome = document.getElementById('nome').value.trim();
     const codigo = document.getElementById('codigo').value;
     
-    if (PARTICIPANTES[nome] && PARTICIPANTES[nome] === codigo) {
-        usuarioLogado = nome;
-        loginError.textContent = '';
-        nomeUsuario.textContent = nome;
+    loginError.textContent = '⏳ Verificando...';
+    
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ nome, codigo })
+        });
         
-        loginScreen.style.display = 'none';
-        appScreen.style.display = 'block';
+        const data = await response.json();
         
-        carregarDados();
-    } else {
-        loginError.textContent = '❌ Nome ou código inválido!';
+        if (response.ok && data.success) {
+            usuarioLogado = nome;
+            userToken = data.token;
+            loginError.textContent = '';
+            nomeUsuario.textContent = nome;
+            
+            loginScreen.style.display = 'none';
+            appScreen.style.display = 'block';
+            
+            carregarDados();
+        } else {
+            loginError.textContent = '❌ ' + (data.error || 'Nome ou código inválido!');
+        }
+    } catch (error) {
+        loginError.textContent = '❌ Erro de conexão. Tente novamente.';
+        console.error('Erro no login:', error);
     }
 }
 
 // Logout
 function handleLogout() {
     usuarioLogado = null;
+    userToken = null;
     palpitesAtuais = {};
     
     loginScreen.style.display = 'block';
@@ -108,13 +132,9 @@ async function carregarDados() {
         loading.style.display = 'block';
         jogosContainer.innerHTML = '';
         
-        // Carregar jogos
         await carregarJogos();
-        
-        // Carregar palpites do usuário
         await carregarPalpites();
         
-        // Renderizar interface
         renderizarJogos();
         
         loading.style.display = 'none';
@@ -193,13 +213,13 @@ function renderizarJogos() {
                 <div class="fase-header">
                     <h2 class="fase-title">🏆 ${fase}</h2>
                     <div class="fase-prazo ${faseAberta ? 'aberta' : 'encerrada'}">
-                        ${faseAberta ? '⏰ ' + tempoRestante.texto : '🔒 indisponivel'}
+                        ${faseAberta ? '⏰ ' + tempoRestante.texto : '🔒 Encerrado'}
                     </div>
                 </div>
         `;
         
         if (!faseAberta) {
-            html += `<div class="fase-bloqueada">⚠️ Palpites desta fase indisponivels</div>`;
+            html += `<div class="fase-bloqueada">⚠️ Palpites desta fase encerrados</div>`;
         }
         
         if (fase === 'Grupo') {
@@ -231,7 +251,6 @@ function renderizarJogos() {
     
     jogosContainer.innerHTML = html;
     
-    // Adicionar event listeners aos inputs
     document.querySelectorAll('.gols-input').forEach(input => {
         input.addEventListener('change', handlePalpiteChange);
     });
@@ -306,9 +325,8 @@ function handlePalpiteChange(e) {
     }
 }
 
-// Enviar palpites
+// Enviar palpites via backend
 async function handleSubmit() {
-    // Coletar todos os palpites dos inputs
     const inputs = document.querySelectorAll('.gols-input');
     inputs.forEach(input => {
         const idJogo = input.dataset.jogo;
@@ -326,7 +344,7 @@ async function handleSubmit() {
         }
     });
     
-    // NOVO: Filtrar apenas jogos de fases abertas
+    // Filtrar apenas jogos de fases abertas
     const palpitesFasesAbertas = {};
     for (const [idJogo, palpite] of Object.entries(palpitesAtuais)) {
         const jogo = jogosData.find(j => j.ID_Jogo == idJogo);
@@ -355,56 +373,49 @@ async function handleSubmit() {
     progressPercentage.textContent = '30%';
     
     try {
-        // Simular progresso enquanto salva
         setTimeout(() => {
             progressFill.style.width = '60%';
             progressPercentage.textContent = '60%';
         }, 500);
         
-        await salvarPalpites(palpitesFasesAbertas);
+        const response = await fetch(`${BACKEND_URL}/api/salvar`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                participante: usuarioLogado,
+                palpites: palpitesFasesAbertas,
+                token: userToken
+            })
+        });
         
-        progressFill.style.width = '100%';
-        progressPercentage.textContent = '100%';
-        progressText.textContent = '✅ Palpites salvos!';
-        progressDetails.textContent = `${Object.keys(palpitesFasesAbertas).length} palpites salvos com sucesso!`;
+        const data = await response.json();
         
-        // Esconder barra após 3 segundos
-        setTimeout(() => {
-            progressContainer.style.display = 'none';
-            submitContainer.style.display = 'block';
-            
-            successMessage.innerHTML = `✅ ${Object.keys(palpitesFasesAbertas).length} palpites salvos com sucesso! Boa sorte! 🍀`;
-            successMessage.style.display = 'block';
+        if (response.ok && data.success) {
+            progressFill.style.width = '100%';
+            progressPercentage.textContent = '100%';
+            progressText.textContent = '✅ Palpites salvos!';
+            progressDetails.textContent = `${Object.keys(palpitesFasesAbertas).length} palpites salvos com sucesso!`;
             
             setTimeout(() => {
-                successMessage.style.display = 'none';
-            }, 5000);
-        }, 3000);
+                progressContainer.style.display = 'none';
+                submitContainer.style.display = 'block';
+                
+                successMessage.innerHTML = `✅ ${Object.keys(palpitesFasesAbertas).length} palpites salvos com sucesso! Boa sorte! 🍀`;
+                successMessage.style.display = 'block';
+                
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 5000);
+            }, 2000);
+        } else {
+            throw new Error(data.error || 'Erro ao salvar');
+        }
         
     } catch (error) {
         progressContainer.style.display = 'none';
         submitContainer.style.display = 'block';
         alert('❌ Erro ao salvar: ' + error.message);
     }
-}
-
-// Salvar palpites no Google Sheets
-async function salvarPalpites(palpites) {
-    const url = 'https://script.google.com/macros/s/AKfycbxKMVc53dhNJCJkzyl1B5xjPG0p-iucVlRkoTYXZYBYsSLJEfQ2zl8ZksCjcY435rUB/exec';  // NÃO ESQUEÇA DE COLOCAR A URL!
-    
-    const dados = {
-        participante: usuarioLogado,
-        palpites: palpites  // Agora só envia fases abertas
-    };
-    
-    const response = await fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dados)
-    });
-    
-    return true;
 }
