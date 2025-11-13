@@ -360,7 +360,7 @@ async function salvarPalpites() {
     // Nota: Salvar no Google Sheets via API requer autenticação OAuth
     // Para simplificar, vou usar Google Apps Script como intermediário
     
-    const url = 'SUA_URL_DO_GOOGLE_APPS_SCRIPT_AQUI';
+    const url = 'https://script.google.com/macros/s/AKfycbw4NyNe54IFePp5b2CCCJU5ucbr6umdLciRXc5TjET5aheDJ3ZpCZ704zbFbwBQHy7B/exec';
     
     const dados = {
         participante: usuarioLogado,
