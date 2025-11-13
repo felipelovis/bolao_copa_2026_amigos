@@ -32,9 +32,9 @@ function mostrarPrazos() {
     let html = '';
     for (const [fase, dataLimite] of Object.entries(DATAS_LIMITE)) {
         const tempoRestante = calcularTempoRestante(dataLimite);
-        const classe = tempoRestante.encerrado ? 'prazo-encerrado' : 'prazo-aberto';
-        const icone = tempoRestante.encerrado ? '🔒' : '🟢';
-        const texto = tempoRestante.encerrado ? 'Encerrado' : tempoRestante.texto;
+        const classe = tempoRestante.indisponivel ? 'prazo-indisponivel' : 'prazo-aberto';
+        const icone = tempoRestante.indisponivel ? '🔒' : '🟢';
+        const texto = tempoRestante.indisponivel ? 'indisponivel' : tempoRestante.texto;
         
         html += `<div class="prazo-item ${classe}">${icone} ${fase}: ${texto}</div>`;
     }
@@ -47,7 +47,7 @@ function calcularTempoRestante(dataLimite) {
     const diferenca = dataLimite - agora;
     
     if (diferenca <= 0) {
-        return { encerrado: true, texto: 'Encerrado' };
+        return { indisponivel: true, texto: 'indisponivel' };
     }
     
     const dias = Math.floor(diferenca / (1000 * 60 * 60 * 24));
@@ -55,18 +55,18 @@ function calcularTempoRestante(dataLimite) {
     const minutos = Math.floor((diferenca % (1000 * 60 * 60)) / (1000 * 60));
     
     if (dias > 0) {
-        return { encerrado: false, texto: `${dias}d ${horas}h ${minutos}min` };
+        return { indisponivel: false, texto: `${dias}d ${horas}h ${minutos}min` };
     } else if (horas > 0) {
-        return { encerrado: false, texto: `${horas}h ${minutos}min` };
+        return { indisponivel: false, texto: `${horas}h ${minutos}min` };
     } else {
-        return { encerrado: false, texto: `${minutos}min` };
+        return { indisponivel: false, texto: `${minutos}min` };
     }
 }
 
 // Verificar se fase está aberta
 function faseEstaAberta(fase) {
     if (!DATAS_LIMITE[fase]) return true;
-    return !calcularTempoRestante(DATAS_LIMITE[fase]).encerrado;
+    return !calcularTempoRestante(DATAS_LIMITE[fase]).indisponivel;
 }
 
 // Login
@@ -193,13 +193,13 @@ function renderizarJogos() {
                 <div class="fase-header">
                     <h2 class="fase-title">🏆 ${fase}</h2>
                     <div class="fase-prazo ${faseAberta ? 'aberta' : 'encerrada'}">
-                        ${faseAberta ? '⏰ ' + tempoRestante.texto : '🔒 Encerrado'}
+                        ${faseAberta ? '⏰ ' + tempoRestante.texto : '🔒 indisponivel'}
                     </div>
                 </div>
         `;
         
         if (!faseAberta) {
-            html += `<div class="fase-bloqueada">⚠️ Palpites desta fase encerrados</div>`;
+            html += `<div class="fase-bloqueada">⚠️ Palpites desta fase indisponivels</div>`;
         }
         
         if (fase === 'Grupo') {
