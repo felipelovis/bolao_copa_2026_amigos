@@ -2,10 +2,10 @@
 
 // PARTICIPANTES (Nome: Código)
 const PARTICIPANTES = {
-    "Felipe": "ABC123",
-    "João": "XYZ789",
-    "Maria": "QWE456",
-    "Pedro": "ASD321",
+    "Felipe",
+    "João",
+    "Maria",
+    "Pedro",
     // Adicione mais participantes aqui
 };
 
