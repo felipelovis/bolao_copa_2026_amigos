@@ -1,14 +1,5 @@
 // ==================== CONFIGURAÇÕES ====================
 
-// PARTICIPANTES (Nome: Código)
-const PARTICIPANTES = {
-    "Felipe",
-    "João",
-    "Maria",
-    "Pedro",
-    // Adicione mais participantes aqui
-};
-
 // DATAS LIMITE por fase (CORRIGIDO PARA 2026!)
 const DATAS_LIMITE = {
     'Grupo': new Date('2026-06-11T14:00:00'),
