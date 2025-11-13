@@ -22,7 +22,7 @@ const DATAS_LIMITE = {
 
 // ID DO GOOGLE SHEETS (copie da URL da sua planilha)
 // URL: https://docs.google.com/spreadsheets/d/SEU_ID_AQUI/edit
-const SPREADSHEET_ID = 'https://docs.google.com/spreadsheets/d/1MjSAQUet51WEfdYbToNn7rJ2faK8t2XQsVlFMX9KSQU/edit?usp=sharingAQUI';
+const SPREADSHEET_ID = '1MjSAQUet51WEfdYbToNn7rJ2faK8t2XQsVlFMX9KSQU';
 
 // CHAVE DA API DO GOOGLE
 // Vou te ensinar a criar depois
