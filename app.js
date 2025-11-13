@@ -39,7 +39,7 @@ function mostrarPrazos() {
         const tempoRestante = calcularTempoRestante(dataLimite);
         const classe = tempoRestante.encerrado ? 'prazo-encerrado' : 'prazo-aberto';
         const icone = tempoRestante.encerrado ? '🔒' : '🟢';
-        const texto = tempoRestante.encerrado ? 'Encerrado' : tempoRestante.texto;
+        const texto = tempoRestante.encerrado ? 'Indisponivel' : tempoRestante.texto;
         
         html += `<div class="prazo-item ${classe}">${icone} ${fase}: ${texto}</div>`;
     }
