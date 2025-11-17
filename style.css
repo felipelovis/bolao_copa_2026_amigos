@@ -5,10 +5,17 @@
 }
 
 body {
+    margin: 0;
+    padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    
+    /* FUNDO DE GRAMADO */
+    background-image: url('foto_fundo.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     min-height: 100vh;
-    padding: 20px;
 }
 
 .container {
@@ -17,7 +24,8 @@ body {
 }
 
 .header {
-    background: linear-gradient(135deg, #1f77b4 0%, #2a9fd6 100%);
+    background: linear-gradient(135deg, rgba(31, 119, 180, 0.35) 0%, rgba(42, 159, 214, 0.35) 100%);
+    backdrop-filter: blur(15px);
     color: white;
     padding: 30px;
     border-radius: 15px;
@@ -44,7 +52,9 @@ body {
 }
 
 .login-box {
-    background: white;
+    background: rgba(255, 255, 255, 0.65); /* Branco semi-transparente */
+    backdrop-filter: blur(10px); /* Efeito de vidro fosco */
+    /*background: white;*/
     padding: 40px;
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
@@ -163,13 +173,15 @@ body {
 }
 
 .user-welcome {
-    background: #e8f5e9;
+    background: rgba(232, 245, 233, 0.75);
+    backdrop-filter: blur(10px);
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 20px;
     display: flex;
     flex-direction: column;
     gap: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .loading {
@@ -194,7 +206,9 @@ body {
 }
 
 .fase-section {
-    background: white;
+    background: rgba(255, 255, 255, 0.65); /* Branco semi-transparente */
+    backdrop-filter: blur(10px); /* Efeito de vidro fosco */
+    /*background: white;*/
     padding: 30px;
     border-radius: 15px;
     margin-bottom: 30px;
@@ -248,7 +262,9 @@ body {
 }
 
 .jogo-card {
-    background: #f0f2f6;
+    background: rgba(255, 255, 255, 0.10); /* Branco semi-transparente */
+    backdrop-filter: blur(10px); /* Efeito de vidro fosco */
+    /*background: #f0f2f6;*/
     padding: 25px;
     border-radius: 15px;
     margin-bottom: 20px;
